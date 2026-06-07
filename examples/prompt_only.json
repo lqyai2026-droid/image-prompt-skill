@@ -1,0 +1,5 @@
+{
+  "intent": "生成一个黑金风格的高端 AI 工具站宣传图",
+  "backend": "prompt_only",
+  "aspect_ratio": "16:9"
+}

@@ -1,0 +1,49 @@
+skill:
+  name: universal-image-prompt-skill
+  version: 1.0.0
+
+paths:
+  data_dir: "./data"
+  output_dir: "./outputs"
+  cache_dir: "./cache"
+  source_dir: "./source"
+  workflow_dir: "./workflows"
+
+backend:
+  mode: "auto"
+  priority:
+    - "native_image"
+    - "comfyui"
+    - "sd_webui"
+    - "prompt_only"
+
+native_image:
+  enabled: true
+  provider: "agent_default"
+
+comfyui:
+  enabled: false
+  api_url: "http://127.0.0.1:8188"
+  workflow_dir: "./workflows"
+  default_workflow: "sdxl_text2image.json"
+  timeout_seconds: 180
+
+sd_webui:
+  enabled: false
+  api_url: "http://127.0.0.1:7860"
+  timeout_seconds: 180
+
+prompt:
+  default_style: "auto"
+  default_aspect_ratio: "1:1"
+  language: "zh-CN"
+  negative_prompt: "low quality, blurry, deformed, bad anatomy, extra fingers, watermark, random text, misspelled text, distorted logo, jpeg artifacts, oversmoothed skin, unrealistic lighting"
+
+models:
+  comfyui:
+    photorealistic: "juggernaut_xl"
+    anime: "animagine_xl"
+    poster: "flux"
+    product: "juggernaut_xl"
+  native_image:
+    default: "auto"

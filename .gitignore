@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+config.yaml
+outputs/
+cache/
+source/
+workflows/
+data/prompts.sqlite
+data/prompts_raw.jsonl
+data/prompts_comfy.jsonl
