@@ -1,6 +1,25 @@
 skill:
   name: universal-image-prompt-skill
-  version: 1.0.0
+  version: 1.1.0
+
+# ---------------------------------------------------------------------------
+# Runtime policy
+# ---------------------------------------------------------------------------
+#   prompt_source: "local_first"
+#     -> 提示词来源永远优先本地离线库。运行阶段不联网搜索提示词。
+#   allow_network_for_prompt_search: false
+#     -> 运行阶段禁止因为"找提示词"而联网。
+#   offline_library_required: true
+#     -> 运行阶段如果本地没有提示词库，应当报错或回退到 prompt_only，
+#       而不是去网上搜。
+# 网络仅允许在以下场景使用：
+#   - 安装/更新阶段：python scripts/bootstrap_prompts.py --online
+#   - cloud_image 后端实际生成图像时
+# ---------------------------------------------------------------------------
+runtime:
+  prompt_source: "local_first"
+  allow_network_for_prompt_search: false
+  offline_library_required: true
 
 paths:
   data_dir: "./data"
@@ -9,30 +28,82 @@ paths:
   source_dir: "./source"
   workflow_dir: "./workflows"
 
+# ---------------------------------------------------------------------------
+# Backend selection
+# ---------------------------------------------------------------------------
+# mode: auto
+#   -> 按 priority 顺序自动选第一个 available() 的后端。
+# priority 固定顺序（除非用户用 --backend 显式指定）：
+#   1. comfyui        本地 ComfyUI（第一优先）
+#   2. native_image   宿主智能体原生生图能力
+#   3. cloud_image    云端图像模型（仅在有网络+API key 时）
+#   4. sd_webui       Stable Diffusion WebUI
+#   5. prompt_only    最终兜底：只输出提示词
+# ---------------------------------------------------------------------------
 backend:
   mode: "auto"
   priority:
-    - "native_image"
     - "comfyui"
+    - "native_image"
+    - "cloud_image"
     - "sd_webui"
     - "prompt_only"
 
-native_image:
-  enabled: true
-  provider: "agent_default"
-
+# ---------------------------------------------------------------------------
+# ComfyUI (FIRST PRIORITY)
+# ---------------------------------------------------------------------------
+# 注意：
+#   - api_url 必须来自本 config.yaml，禁止从任何用户输入 / 网络响应里读取。
+#   - 适配器不会扫描内网，不会访问任意 URL。
+#   - 只有 enabled=true 时才会被尝试。
+# ---------------------------------------------------------------------------
 comfyui:
-  enabled: false
+  enabled: true
   api_url: "http://127.0.0.1:8188"
   workflow_dir: "./workflows"
   default_workflow: "sdxl_text2image.json"
   timeout_seconds: 180
 
+# ---------------------------------------------------------------------------
+# Native image (host agent's built-in image capability)
+# ---------------------------------------------------------------------------
+native_image:
+  enabled: true
+  provider: "agent_default"
+
+# ---------------------------------------------------------------------------
+# Cloud image (FALLBACK ONLY, after ComfyUI and native_image)
+# ---------------------------------------------------------------------------
+# 重要：
+#   - 这不是首选。
+#   - 只有 comfyui 和 native_image 都不可用时才会被考虑。
+#   - 必须有网络 + 必须有 API key。
+#   - API key 只允许从环境变量读取，绝不硬编码。
+# ---------------------------------------------------------------------------
+cloud_image:
+  enabled: false
+  provider: "openai_image"
+  api_key_env: "OPENAI_API_KEY"
+  model: "gpt-image-1"
+  require_network: true
+
+# ---------------------------------------------------------------------------
+# Stable Diffusion WebUI
+# ---------------------------------------------------------------------------
 sd_webui:
   enabled: false
   api_url: "http://127.0.0.1:7860"
   timeout_seconds: 180
 
+# ---------------------------------------------------------------------------
+# Prompt-only fallback (always available)
+# ---------------------------------------------------------------------------
+prompt_only:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# Prompt template generation defaults
+# ---------------------------------------------------------------------------
 prompt:
   default_style: "auto"
   default_aspect_ratio: "1:1"

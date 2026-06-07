@@ -1,3 +1,22 @@
+"""
+Prompt router.
+
+This module is OFFLINE ONLY.  It must never make a network call.
+
+    Why: runtime prompt retrieval must be deterministic and independent
+    of network availability.  If router.py went online, then a flaky
+    Wi-Fi would change the prompt your backend receives.
+
+    The only place this skill is allowed to fetch prompts from the
+    network is scripts/bootstrap_prompts.py (the install / update step).
+
+Local retrieval order (do not change without updating the docs):
+
+    1. data/prompts.sqlite
+    2. data/prompts_comfy.jsonl
+    3. data/seed_prompts.jsonl
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -6,7 +25,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Dict, List
 
-from common import aspect_to_size, ensure_db, find_root, iter_jsonl, load_config, resolve_path
+from common import aspect_to_size, find_root, iter_jsonl, load_config, resolve_path
 
 CATEGORY_KEYWORDS = {
     "product": ["产品", "商品", "电商", "主图", "香水", "护肤", "包装", "广告图"],

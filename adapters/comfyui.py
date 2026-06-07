@@ -1,5 +1,26 @@
 from __future__ import annotations
 
+"""
+ComfyUI backend adapter.
+
+IMPORTANT: ComfyUI is the FIRST-PRIORITY backend in this skill
+(see config.example.yaml -> backend.priority).  Do NOT demote it.
+
+Security rules (enforced in this file, not by convention):
+
+    1. available() returns False unless config.comfyui.enabled is truthy.
+    2. The API URL is read ONLY from config["comfyui"]["api_url"].
+       We never accept URLs from user input, environment variables other
+       than IMAGE_PROMPT_SKILL_HOME, network responses, or anything else.
+    3. We do not scan any network range, do not probe any host, do not
+       follow any redirect to a different host.
+    4. The only outbound HTTP calls this adapter makes are:
+            GET  {api_url}/system_stats      (liveness probe)
+            POST {api_url}/prompt            (submit workflow)
+            GET  {api_url}/history/{id}      (poll for result)
+       where {api_url} is the single value from config.yaml.
+"""
+
 import json
 import time
 import uuid
